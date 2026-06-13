@@ -1,0 +1,13 @@
+{
+  "name": "oxEdit — ox_inventory editor",
+  "short_name": "oxEdit",
+  "description": "Free in-browser editor for ox_inventory items, weapons, shops, crafting and stashes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f10",
+  "theme_color": "#2cb5a4",
+  "icons": [
+    { "src": "/icon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/apple-touch-icon.png", "type": "image/png", "sizes": "180x180" }
+  ]
+}

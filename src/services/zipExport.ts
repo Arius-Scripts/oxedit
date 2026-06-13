@@ -1,5 +1,3 @@
-import JSZip from 'jszip';
-
 export interface ZipEntry {
   /** Path inside the zip, e.g. "data/items.lua" or "web/images/burger.png". */
   path: string;
@@ -7,6 +5,8 @@ export interface ZipEntry {
 }
 
 export async function buildZip(entries: ZipEntry[]): Promise<Blob> {
+  // Loaded on demand so jszip stays out of the initial bundle (only needed on export).
+  const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
   for (const e of entries) {
     zip.file(e.path, e.data);

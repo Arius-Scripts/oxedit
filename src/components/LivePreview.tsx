@@ -1,8 +1,8 @@
-import Editor from '@monaco-editor/react';
+import { MonacoEditor } from './MonacoLazy';
 
 export function LivePreview({ source }: { source: string }) {
   return (
-    <Editor
+    <MonacoEditor
       height="100%"
       defaultLanguage="lua"
       theme="vs-dark"

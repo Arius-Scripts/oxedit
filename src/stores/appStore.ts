@@ -26,6 +26,7 @@ import {
   type LoadedDataFile,
 } from '@/services/fileSystem';
 import { buildZip, downloadBlob, type ZipEntry } from '@/services/zipExport';
+import { DEMO_FILES, buildDemoImages } from '@/data/demo';
 import * as db from '@/services/db';
 
 export interface FileState {
@@ -49,6 +50,7 @@ interface AppState {
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
   handle: FsDirHandle | null;
+  demo: boolean;
 
   files: Partial<Record<DataFileName, FileState>>;
   order: DataFileName[];
@@ -62,6 +64,7 @@ interface AppState {
   chooseFolder: () => Promise<void>;
   chooseUpload: () => Promise<void>;
   chooseDrop: (roots: DroppedRoots) => Promise<void>;
+  loadDemo: () => Promise<void>;
   closeFolder: () => Promise<void>;
   setActive: (name: DataFileName) => void;
 
@@ -118,6 +121,7 @@ async function applyLoaded(
     const imageStates: ImageState[] = images.map((i) => ({ ...i }));
     set({
       handle,
+      demo: false,
       files: fileMap,
       order,
       images: imageStates,
@@ -142,6 +146,7 @@ export const useApp = create<AppState>((set, get) => ({
   status: 'idle',
   error: null,
   handle: null,
+  demo: false,
   files: {},
   order: [],
   images: [],
@@ -196,13 +201,24 @@ export const useApp = create<AppState>((set, get) => ({
     }
   },
 
+  loadDemo: async () => {
+    try {
+      set({ status: 'loading', error: null });
+      const images = await buildDemoImages();
+      await applyLoaded({ files: DEMO_FILES, images }, null, set, get);
+      set({ demo: true });
+    } catch (e: any) {
+      set({ status: 'error', error: e?.message ?? String(e) });
+    }
+  },
+
   closeFolder: async () => {
     await forgetFolder();
     get().images.forEach((i) => {
       URL.revokeObjectURL(i.url);
       if (i.optimizedUrl) URL.revokeObjectURL(i.optimizedUrl);
     });
-    set({ handle: null, files: {}, order: [], images: [], activeFile: null, status: 'idle', undo: {} });
+    set({ handle: null, demo: false, files: {}, order: [], images: [], activeFile: null, status: 'idle', undo: {} });
   },
 
   setActive: (name) => set({ activeFile: name }),

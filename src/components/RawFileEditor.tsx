@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Editor from '@monaco-editor/react';
+import { MonacoEditor } from './MonacoLazy';
 import toast from 'react-hot-toast';
 import { Save } from 'lucide-react';
 import { Button } from './ui/button';
@@ -30,7 +30,7 @@ export function RawFileEditor({ file }: { file: DataFileName }) {
         </Button>
       </div>
       <div className="flex-1">
-        <Editor
+        <MonacoEditor
           height="100%"
           defaultLanguage="lua"
           theme="vs-dark"

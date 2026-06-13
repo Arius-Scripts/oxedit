@@ -1,9 +1,16 @@
-# ox Item Manager
+# oxEdit — ox_inventory item, weapon & shop editor
 
-A standalone web app for editing [ox_inventory](https://github.com/overextended/ox_inventory)
-data files (`items.lua`, `weapons.lua`, `shops.lua`, …) and `web/images` — entirely in your
-browser. Pick your `ox_inventory` folder, edit items/weapons/shops/crafting/stashes and more,
-then export a zip (or write changes straight back to disk).
+**Live:** https://ox-inventory-manager.vercel.app/
+
+oxEdit is a free, standalone web app for editing
+[ox_inventory](https://github.com/overextended/ox_inventory) data files
+(`items.lua`, `weapons.lua`, `shops.lua`, `crafting.lua`, `stashes.lua`) and `web/images` —
+entirely in your browser. Pick your `ox_inventory` folder, edit items / weapons / shops /
+crafting / stashes and item images, then export a zip (or write changes straight back to disk).
+Nothing is uploaded — everything runs client-side.
+
+> Keywords: ox_inventory editor, ox_inventory item editor, items.lua editor, ox inventory shops
+> editor, FiveM item creator (QBCore / ESX / QBox).
 
 **Non-destructive by design:** edits are applied as byte-range splices on the original file.
 If you change one item's weight, only that line changes — every comment, blank line, `vec3()`,

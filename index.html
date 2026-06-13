@@ -2,9 +2,57 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ox Item Manager</title>
+
+    <title>oxEdit — ox_inventory item, weapon & shop editor</title>
+    <meta
+      name="description"
+      content="Free in-browser editor for ox_inventory data files. Edit items, weapons, shops, crafting and stashes with non-destructive saves, bulk edits and image optimization. No upload, no install."
+    />
+    <meta name="theme-color" content="#2cb5a4" />
+    <link rel="canonical" href="https://ox-inventory-manager.vercel.app/" />
+
+    <!-- Icons & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="oxEdit" />
+    <meta property="og:title" content="oxEdit — ox_inventory item, weapon & shop editor" />
+    <meta
+      property="og:description"
+      content="Free in-browser editor for ox_inventory items, weapons, shops, crafting and stashes. Non-destructive edits, bulk actions and image optimization — your files never leave your computer."
+    />
+    <meta property="og:url" content="https://ox-inventory-manager.vercel.app/" />
+    <meta property="og:image" content="https://ox-inventory-manager.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="oxEdit — ox_inventory item, weapon & shop editor" />
+    <meta
+      name="twitter:description"
+      content="Free in-browser editor for ox_inventory items, weapons, shops, crafting and stashes. Non-destructive edits, no upload, no install."
+    />
+    <meta name="twitter:image" content="https://ox-inventory-manager.vercel.app/og-image.png" />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "oxEdit",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "url": "https://ox-inventory-manager.vercel.app/",
+        "description": "Free in-browser editor for ox_inventory data files — edit items, weapons, shops, crafting and stashes with non-destructive saves, bulk edits and image optimization.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,6 +62,17 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="max-width: 640px; margin: 4rem auto; padding: 0 1.5rem; font-family: sans-serif; line-height: 1.6;">
+        <h1>oxEdit — ox_inventory item, weapon &amp; shop editor</h1>
+        <p>
+          oxEdit is a free, in-browser editor for
+          <a href="https://github.com/overextended/ox_inventory">ox_inventory</a> data files. Edit items,
+          weapons, shops, crafting and stashes, optimize item images, and export — all without uploading
+          your files anywhere. JavaScript is required to run the editor.
+        </p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
