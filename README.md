@@ -1,6 +1,6 @@
 # oxEdit — ox_inventory item, weapon & shop editor
 
-**Live:** https://ox-inventory-manager.vercel.app/
+**Live:** https://oxedit.vercel.app/
 
 oxEdit is a free, standalone web app for editing
 [ox_inventory](https://github.com/overextended/ox_inventory) data files

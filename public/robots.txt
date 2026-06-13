@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ox-inventory-manager.vercel.app/sitemap.xml
+Sitemap: https://oxedit.vercel.app/sitemap.xml
