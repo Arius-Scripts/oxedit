@@ -150,7 +150,18 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
           Your files never leave your computer — everything runs in your browser.
         </p>
 
-        <footer className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+        <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-1 text-left text-[11px] text-muted-foreground">
+          <li>Items editor</li>
+          <li>Weapons editor</li>
+          <li>Shops editor</li>
+          <li>Crafting editor</li>
+          <li>Stashes editor</li>
+          <li>Image optimizer</li>
+          <li>Bulk edits</li>
+          <li>Non-destructive saves</li>
+        </ul>
+
+        <footer className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
           <a
             href="https://github.com/Arius-Scripts/inventory_manager"
             target="_blank"

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useLocation } from 'wouter';
 import toast from 'react-hot-toast';
 import {
   Archive,
@@ -34,6 +35,13 @@ import { cn } from '@/lib/utils';
 
 type View = DataFileName | 'images' | 'logs';
 
+const VALID_VIEWS: View[] = ['items', 'weapons', 'shops', 'crafting', 'stashes', 'images', 'logs'];
+
+function locationToView(path: string): View {
+  const segment = path.replace(/^\//, '') as View;
+  return VALID_VIEWS.includes(segment) ? segment : 'items';
+}
+
 const FILE_ICON: Record<DataFileName, any> = {
   items: Boxes,
   weapons: Crosshair,
@@ -48,7 +56,9 @@ const FILE_ICON: Record<DataFileName, any> = {
 export default function Workspace() {
   const order = useApp((s) => s.order);
   const files = useApp((s) => s.files);
-  const [view, setView] = useState<View>('items');
+  const [location, setLocation] = useLocation();
+  const view = locationToView(location);
+  const setView = (v: View) => setLocation('/' + v);
 
   useEffect(() => {
     if (order.length && !order.includes(view as DataFileName) && view !== 'images' && view !== 'logs') {
