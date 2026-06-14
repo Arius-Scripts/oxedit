@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { AlertTriangle, Check, Copy, CopyPlus, Eye, EyeOff, FileDown, GitCompare, Pencil, Search, Trash2, Undo2 } from 'lucide-react';
+import { AlertTriangle, Check, Copy, CopyPlus, Eye, EyeOff, FileDown, GitCompare, ImageOff, Pencil, Search, Trash2, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import { DiffView } from '@/components/DiffView';
 import { AddEntryDialog } from '@/components/AddEntryDialog';
 import { BlipChip } from '@/components/BlipChip';
 import { Hint } from '@/components/InfoHint';
+import { ImagePickerModal } from '@/components/ImagePickerModal';
 import { useApp } from '@/stores/appStore';
 import { entryKeys, readField, duplicateKeys } from '@/engine/editModel';
 import { SCHEMAS, FILE_LABELS, formFieldsFor, resolveImage } from '@/engine/schemaRegistry';
@@ -22,15 +23,30 @@ import type { SchemaField } from '@/engine/editModel';
 import type { DataFileName } from '@/services/fileSystem';
 import { cn } from '@/lib/utils';
 
-function ImageThumb({ name, className }: { name?: string; className?: string }) {
+function ImageThumb({ name, className, onClick }: { name?: string; className?: string; onClick?: () => void }) {
   const img = useApp((s) => (name ? s.images.find((i) => i.name === name) : undefined));
   const url = img?.optimizedUrl ?? img?.url;
   if (!name) return <div className={cn('icon-checker rounded border border-border/50', className)} />;
-  if (!url) return (
-    <div className={cn('grid place-items-center rounded border border-amber-500/30 bg-amber-500/10', className)} title={`Missing: ${name}`}>
-      <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
-    </div>
-  );
+  if (!url) {
+    const inner = (
+      <div className={cn('grid place-items-center rounded border border-border/40 bg-muted/20', className)} title={onClick ? `No image — click to assign` : `No image: ${name}`}>
+        <ImageOff className="h-3.5 w-3.5 text-muted-foreground/40" />
+      </div>
+    );
+    return onClick
+      ? <button type="button" onClick={(e) => { e.stopPropagation(); onClick(); }} className="shrink-0 cursor-pointer">{inner}</button>
+      : inner;
+  }
+  if (onClick) {
+    return (
+      <button type="button" onClick={(e) => { e.stopPropagation(); onClick(); }} className="group relative shrink-0 cursor-pointer" title={`${name} — click to change`}>
+        <img src={url} alt={name} loading="lazy" className={cn('icon-checker rounded border border-border/50 object-contain', className)} />
+        <div className="absolute inset-0 flex items-center justify-center rounded bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+          <Pencil className="h-3 w-3 text-white" />
+        </div>
+      </button>
+    );
+  }
   return (
     <img src={url} alt={name} title={name} loading="lazy" className={cn('icon-checker rounded border border-border/50 object-contain', className)} />
   );
@@ -56,6 +72,7 @@ export function DataFilePage({ file }: { file: DataFileName }) {
   const [showPreview, setShowPreview] = useState(true);
   const [showFullDiff, setShowFullDiff] = useState(false);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [pickerFor, setPickerFor] = useState<{ entryKey: string; imageName: string } | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
@@ -228,7 +245,13 @@ export function DataFilePage({ file }: { file: DataFileName }) {
                         {checked && <Check className="h-3 w-3" />}
                       </button>
                       <button onClick={() => setSelected(k)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
-                        {schema.images && <ImageThumb name={img} className="h-8 w-8 shrink-0" />}
+                        {schema.images && (
+                          <ImageThumb
+                            name={img}
+                            className="h-8 w-8 shrink-0"
+                            onClick={img ? () => setPickerFor({ entryKey: k, imageName: img }) : undefined}
+                          />
+                        )}
                         <div className="flex min-w-0 flex-1 flex-col justify-center leading-tight">
                           <div className="flex items-center gap-1">
                             <span className="truncate text-xs font-medium">{label || display}</span>
@@ -304,6 +327,15 @@ export function DataFilePage({ file }: { file: DataFileName }) {
         keys={[...sel]}
         onDone={() => setSel(new Set())}
       />
+
+      {pickerFor && (
+        <ImagePickerModal
+          file={file}
+          entryKey={pickerFor.entryKey}
+          imageName={pickerFor.imageName}
+          onClose={() => setPickerFor(null)}
+        />
+      )}
     </div>
   );
 }

@@ -273,6 +273,7 @@ export const useApp = create<AppState>((set, get) => ({
     try {
       const picked = await promptFolderUpload();
       if (picked.length === 0) return;
+      set({ status: 'loading', error: null });
       await db.clearDraft();
       set({ uploadDraft: null });
       await applyLoaded(await readUpload(picked), null, set, get);
