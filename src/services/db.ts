@@ -52,6 +52,12 @@ function db() {
   return dbPromise;
 }
 
+export interface Draft {
+  folderName: string;
+  ts: number;
+  files: Record<string, string>;
+}
+
 // --- Folder handle persistence ---
 export async function saveHandle(handle: any): Promise<void> {
   await (await db()).put('handles', handle, 'root');
@@ -61,6 +67,15 @@ export async function loadHandle(): Promise<any | undefined> {
 }
 export async function clearHandle(): Promise<void> {
   await (await db()).delete('handles', 'root');
+}
+export async function saveDraft(draft: Draft): Promise<void> {
+  await (await db()).put('handles', draft, 'draft');
+}
+export async function loadDraft(): Promise<Draft | undefined> {
+  return (await db()).get('handles', 'draft');
+}
+export async function clearDraft(): Promise<void> {
+  await (await db()).delete('handles', 'draft');
 }
 
 // --- Activity log ---

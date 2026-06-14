@@ -12,6 +12,7 @@ const Workspace = lazy(() => import('./Workspace'));
 
 export default function App() {
   const { supported, status, error, init } = useApp();
+  const restoredCount = useApp((s) => s._restoredDraftCount);
 
   useEffect(() => {
     init();
@@ -20,6 +21,12 @@ export default function App() {
   useEffect(() => {
     if (error) toast.error(error);
   }, [error]);
+
+  useEffect(() => {
+    if (restoredCount > 0) {
+      toast.success(`Restored unsaved changes from your last session (${restoredCount} file${restoredCount > 1 ? 's' : ''})`, { duration: 5000 });
+    }
+  }, [restoredCount]);
 
   // Prevent the browser from navigating away if a folder is dropped outside the drop zone.
   useEffect(() => {

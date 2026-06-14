@@ -59,6 +59,7 @@ interface AppState {
   logs: db.LogEntry[];
 
   undo: Partial<Record<DataFileName, string[]>>;
+  _restoredDraftCount: number;
 
   init: () => Promise<void>;
   chooseFolder: () => Promise<void>;
@@ -90,11 +91,26 @@ interface AppState {
   clearLogs: () => Promise<void>;
 }
 
+async function persistDraft(get: () => AppState) {
+  const { files, handle, demo } = get();
+  if (demo || !handle) return;
+  const dirty: Record<string, string> = {};
+  for (const [name, fs] of Object.entries(files)) {
+    if (fs?.dirty) dirty[name] = fs.current;
+  }
+  if (Object.keys(dirty).length === 0) {
+    await db.clearDraft();
+  } else {
+    await db.saveDraft({ folderName: handle.name, ts: Date.now(), files: dirty });
+  }
+}
+
 async function applyLoaded(
   loaded: { files: LoadedDataFile[]; images: { name: string; blob: Blob; url: string; size: number }[] },
   handle: FsDirHandle | null,
   set: any,
-  get: any
+  get: any,
+  draft?: db.Draft
 ) {
   set({ status: 'loading', error: null });
   try {
@@ -114,8 +130,19 @@ async function applyLoaded(
         };
         order.push(f.name);
       } catch (e) {
-        // A file that fails to parse is still kept as raw (no model) — skip for now.
         console.warn(`Failed to parse ${f.name}.lua`, e);
+      }
+    }
+    let restoredCount = 0;
+    if (draft && handle && draft.folderName === handle.name) {
+      for (const [fname, content] of Object.entries(draft.files)) {
+        const existing = fileMap[fname as DataFileName];
+        if (!existing || content === existing.original) continue;
+        try {
+          const { model, hash } = modelFromSource(content);
+          fileMap[fname as DataFileName] = { ...existing, current: content, model, hash, dirty: true };
+          restoredCount++;
+        } catch {}
       }
     }
     const imageStates: ImageState[] = images.map((i) => ({ ...i }));
@@ -127,6 +154,7 @@ async function applyLoaded(
       images: imageStates,
       activeFile: order[0] ?? null,
       status: 'ready',
+      _restoredDraftCount: restoredCount,
     });
     await db.addLog({
       ts: Date.now(),
@@ -153,6 +181,7 @@ export const useApp = create<AppState>((set, get) => ({
   activeFile: null,
   logs: [],
   undo: {},
+  _restoredDraftCount: 0,
 
   init: async () => {
     if (!isSupported()) {
@@ -160,7 +189,10 @@ export const useApp = create<AppState>((set, get) => ({
       return;
     }
     const handle = await restoreFolder();
-    if (handle) await applyLoaded(await readFolder(handle), handle, set, get);
+    if (handle) {
+      const draft = await db.loadDraft();
+      await applyLoaded(await readFolder(handle), handle, set, get, draft);
+    }
   },
 
   chooseFolder: async () => {
@@ -214,11 +246,12 @@ export const useApp = create<AppState>((set, get) => ({
 
   closeFolder: async () => {
     await forgetFolder();
+    await db.clearDraft();
     get().images.forEach((i) => {
       URL.revokeObjectURL(i.url);
       if (i.optimizedUrl) URL.revokeObjectURL(i.optimizedUrl);
     });
-    set({ handle: null, demo: false, files: {}, order: [], images: [], activeFile: null, status: 'idle', undo: {} });
+    set({ handle: null, demo: false, files: {}, order: [], images: [], activeFile: null, status: 'idle', undo: {}, _restoredDraftCount: 0 });
   },
 
   setActive: (name) => set({ activeFile: name }),
@@ -238,6 +271,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: 'raw edit' });
       await db.addLog({ ts: Date.now(), file, entry: '-', action: 'modify', detail: 'raw edit' });
       await get().refreshLogs();
+      await persistDraft(get);
       return true;
     } catch (e: any) {
       set({ error: `Parse error: ${e?.message ?? e}` });
@@ -267,6 +301,7 @@ export const useApp = create<AppState>((set, get) => ({
         detail: edits.map((e) => e.path.slice(entry.length + 1)).join(', '),
       });
       await get().refreshLogs();
+      await persistDraft(get);
       return true;
     } catch (e: any) {
       console.error(e);
@@ -290,6 +325,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `add ${label}` });
       await db.addLog({ ts: Date.now(), file, entry: label, action: 'add', detail: 'new entry' });
       await get().refreshLogs();
+      await persistDraft(get);
       return true;
     } catch (e: any) {
       set({ error: `Add failed: ${e?.message ?? e}` });
@@ -312,6 +348,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `remove ${entry}` });
       await db.addLog({ ts: Date.now(), file, entry, action: 'remove', detail: 'deleted entry' });
       await get().refreshLogs();
+      await persistDraft(get);
       return true;
     } catch (e: any) {
       set({ error: `Remove failed: ${e?.message ?? e}` });
@@ -338,6 +375,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `remove ${entries.length}` });
       await db.addLog({ ts: Date.now(), file, entry: `${entries.length} entries`, action: 'remove', detail: 'bulk delete' });
       await get().refreshLogs();
+      await persistDraft(get);
       return true;
     } catch (e: any) {
       set({ error: `Bulk remove failed: ${e?.message ?? e}` });
@@ -402,6 +440,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `bulk ${field}` });
       await db.addLog({ ts: Date.now(), file, entry: `${count} entries`, action: 'modify', detail: `set ${field}` });
       await get().refreshLogs();
+      await persistDraft(get);
       return count;
     } catch (e: any) {
       set({ error: `Bulk edit failed: ${e?.message ?? e}` });
@@ -424,6 +463,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `edit ${entry}` });
       await db.addLog({ ts: Date.now(), file, entry, action: 'modify', detail: 'structured edit' });
       await get().refreshLogs();
+      await persistDraft(get);
       return true;
     } catch (e: any) {
       set({ error: `Save failed: ${e?.message ?? e}` });
