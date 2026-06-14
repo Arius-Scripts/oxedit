@@ -71,11 +71,7 @@ export function modelFromSource(source: string): { model: FileModel; hash: strin
 
 /** Find the field mapping for an exact splice path. */
 function fieldByPath(model: FileModel, path: string): FieldMapping | undefined {
-  for (const entry of model.entries) {
-    const f = entry.fields.find((x) => x.path === path);
-    if (f) return f;
-  }
-  return model.fields.find((x) => x.path === path);
+  return model.fieldIndex.get(path);
 }
 
 /**

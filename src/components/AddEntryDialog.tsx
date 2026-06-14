@@ -22,11 +22,12 @@ import { PRESETS } from '@/data/presets';
 function applyTemplate(template: string, key: string, label: string): string {
   let lua = template;
   if (key) {
-    if (/\['[^']*'\]/.test(lua)) lua = lua.replace(/\['[^']*'\]/, `['${key}']`);
-    else lua = lua.replace(/^\s*\w+\s*=/, `${key} =`);
+    if (/\['[^']*'\]/.test(lua)) lua = lua.replace(/\['[^']*'\]/, () => `['${key}']`);
+    else lua = lua.replace(/^\s*\w+\s*=/, () => `${key} =`);
   }
   if (label) {
-    lua = lua.replace(/(label|name)(\s*=\s*)'[^']*'/, `$1$2'${label.replace(/'/g, "\\'")}'`);
+    const escaped = label.replace(/'/g, "\\'");
+    lua = lua.replace(/(label|name)(\s*=\s*)'[^']*'/, (_m, k, eq) => `${k}${eq}'${escaped}'`);
   }
   return lua;
 }
@@ -37,13 +38,14 @@ function needsKey(schema: NormalizedSchema): boolean {
 
 /** Ensure a preset's key doesn't collide with an existing entry; rename + rewrite the snippet. */
 function withUniqueKey(lua: string, key: string, existing: string[]): { lua: string; key: string } {
+  const existingSet = new Set(existing);
   let k = key;
   let n = 2;
-  while (existing.includes(k)) k = `${key}_${n++}`;
+  while (existingSet.has(k)) k = `${key}_${n++}`;
   if (k === key) return { lua, key };
   let out = lua;
-  if (/^\s*\['/.test(lua)) out = lua.replace(/\['[^']*'\]/, `['${k}']`);
-  else if (/^\s*\w+\s*=/.test(lua)) out = lua.replace(/^(\s*)\w+(\s*=)/, `$1${k}$2`);
+  if (/^\s*\['/.test(lua)) out = lua.replace(/\['[^']*'\]/, () => `['${k}']`);
+  else if (/^\s*\w+\s*=/.test(lua)) out = lua.replace(/^(\s*)\w+(\s*=)/, (_m, sp, eq) => `${sp}${k}${eq}`);
   return { lua: out, key: k };
 }
 

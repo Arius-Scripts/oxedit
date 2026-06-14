@@ -44,7 +44,7 @@ export function LogsPage() {
             </thead>
             <tbody>
               {logs.map((l, i) => (
-                <tr key={i} className="border-b border-border/50 hover:bg-accent/40">
+                <tr key={`${l.ts}-${l.file}-${l.action}-${i}`} className="border-b border-border/50 hover:bg-accent/40">
                   <td className="whitespace-nowrap px-4 py-1.5 text-xs text-muted-foreground">
                     {new Date(l.ts).toLocaleTimeString()}
                   </td>

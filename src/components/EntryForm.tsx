@@ -294,7 +294,7 @@ function FieldRow({
           type="number"
           placeholder={ph}
           value={value as number}
-          onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+          onChange={(e) => { const n = Number(e.target.value); if (e.target.value === '' || !isNaN(n)) onChange(e.target.value === '' ? 0 : n); }}
         />
       ) : (
         <Input placeholder={ph} value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} />

@@ -27,6 +27,7 @@ export interface FileModel {
   type: 'keyed-map' | 'indexed-array' | 'multi-section';
   entries: EntryMapping[];
   fields: FieldMapping[];
+  fieldIndex: Map<string, FieldMapping>;
   source: string;
   hash: string;
 }
@@ -141,8 +142,8 @@ function walkTable(
       isReadOnly: isReadOnly(value),
     });
 
-    // Recurse into sub-tables (but not functions or deeply nested)
-    if (value.type === 'TableConstructorExpression' && depth < 4) {
+    const MAX_TABLE_DEPTH = 4;
+    if (value.type === 'TableConstructorExpression' && depth < MAX_TABLE_DEPTH) {
       walkTable(value, originalSource, preprocessed, path, fields, depth + 1);
     }
   }
@@ -192,12 +193,12 @@ export function buildFileModel(source: string, hash: string): FileModel {
   // Find the return statement
   const returnStatement: any = ast.body.find((s: any) => s.type === 'ReturnStatement');
   if (!returnStatement || !returnStatement.arguments || returnStatement.arguments.length === 0) {
-    return { type: 'keyed-map', entries: [], fields: [], source, hash };
+    return { type: 'keyed-map', entries: [], fields: [], fieldIndex: new Map(), source, hash };
   }
 
   const returnTable = returnStatement.arguments[0];
   if (returnTable.type !== 'TableConstructorExpression') {
-    return { type: 'keyed-map', entries: [], fields: [], source, hash };
+    return { type: 'keyed-map', entries: [], fields: [], fieldIndex: new Map(), source, hash };
   }
 
   const fileType = detectFileType(returnTable);
@@ -278,5 +279,8 @@ export function buildFileModel(source: string, hash: string): FileModel {
     }
   }
 
-  return { type: fileType, entries, fields: allFields, source, hash };
+  const fieldIndex = new Map<string, FieldMapping>();
+  for (const f of allFields) fieldIndex.set(f.path, f);
+
+  return { type: fileType, entries, fields: allFields, fieldIndex, source, hash };
 }

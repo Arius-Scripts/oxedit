@@ -206,11 +206,9 @@ export const useApp = create<AppState>((set, get) => ({
   uploadDraft: null,
 
   init: async () => {
-    if (!isSupported()) {
-      set({ supported: false });
-      return;
-    }
-    const handle = await restoreFolder();
+    if (!isSupported()) set({ supported: false });
+    // Don't return early — non-supporting browsers still need upload draft check.
+    const handle = isSupported() ? await restoreFolder() : null;
     if (handle) {
       const draft = await db.loadDraft();
       await applyLoaded(await readFolder(handle), handle, set, get, draft?.mode === 'handle' ? draft : undefined);
@@ -225,6 +223,7 @@ export const useApp = create<AppState>((set, get) => ({
   restoreFromDraft: async () => {
     const draft = get().uploadDraft;
     if (!draft || draft.mode !== 'upload') return;
+    get().images.forEach((i) => { URL.revokeObjectURL(i.url); if (i.optimizedUrl) URL.revokeObjectURL(i.optimizedUrl); });
     set({ status: 'loading', error: null, uploadDraft: null });
     try {
       const fileMap: Partial<Record<DataFileName, FileState>> = {};
@@ -238,6 +237,7 @@ export const useApp = create<AppState>((set, get) => ({
           order.push(name);
         } catch {}
       }
+      await db.clearDraft();
       set({ handle: null, demo: false, files: fileMap, order, images: [], activeFile: order[0] ?? null, status: 'ready', _restoredDraftCount: order.filter((f) => fileMap[f]?.dirty).length });
     } catch (e: any) {
       set({ status: 'error', error: e?.message ?? String(e) });
@@ -258,10 +258,10 @@ export const useApp = create<AppState>((set, get) => ({
 
   chooseUpload: async () => {
     try {
-      await db.clearDraft();
-      set({ uploadDraft: null });
       const picked = await promptFolderUpload();
       if (picked.length === 0) return;
+      await db.clearDraft();
+      set({ uploadDraft: null });
       await applyLoaded(await readUpload(picked), null, set, get);
     } catch (e: any) {
       set({ status: 'error', error: e?.message ?? String(e) });
@@ -270,13 +270,14 @@ export const useApp = create<AppState>((set, get) => ({
 
   chooseDrop: async (roots) => {
     try {
-      await db.clearDraft();
-      set({ status: 'loading', error: null, uploadDraft: null });
+      set({ status: 'loading', error: null });
       const { handle, files, images } = await readDrop(roots);
       if (files.length === 0) {
         set({ status: 'idle' });
         return;
       }
+      await db.clearDraft();
+      set({ uploadDraft: null });
       await applyLoaded({ files, images }, handle, set, get);
     } catch (e: any) {
       if (e?.name === 'AbortError') {
@@ -325,7 +326,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: 'raw edit' });
       await db.addLog({ ts: Date.now(), file, entry: '-', action: 'modify', detail: 'raw edit' });
       await get().refreshLogs();
-      await persistDraft(get);
+      try { await persistDraft(get); } catch {}
       return true;
     } catch (e: any) {
       set({ error: `Parse error: ${e?.message ?? e}` });
@@ -355,7 +356,7 @@ export const useApp = create<AppState>((set, get) => ({
         detail: edits.map((e) => e.path.slice(entry.length + 1)).join(', '),
       });
       await get().refreshLogs();
-      await persistDraft(get);
+      try { await persistDraft(get); } catch {}
       return true;
     } catch (e: any) {
       console.error(e);
@@ -379,7 +380,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `add ${label}` });
       await db.addLog({ ts: Date.now(), file, entry: label, action: 'add', detail: 'new entry' });
       await get().refreshLogs();
-      await persistDraft(get);
+      try { await persistDraft(get); } catch {}
       return true;
     } catch (e: any) {
       set({ error: `Add failed: ${e?.message ?? e}` });
@@ -402,7 +403,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `remove ${entry}` });
       await db.addLog({ ts: Date.now(), file, entry, action: 'remove', detail: 'deleted entry' });
       await get().refreshLogs();
-      await persistDraft(get);
+      try { await persistDraft(get); } catch {}
       return true;
     } catch (e: any) {
       set({ error: `Remove failed: ${e?.message ?? e}` });
@@ -429,7 +430,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `remove ${entries.length}` });
       await db.addLog({ ts: Date.now(), file, entry: `${entries.length} entries`, action: 'remove', detail: 'bulk delete' });
       await get().refreshLogs();
-      await persistDraft(get);
+      try { await persistDraft(get); } catch {}
       return true;
     } catch (e: any) {
       set({ error: `Bulk remove failed: ${e?.message ?? e}` });
@@ -517,7 +518,7 @@ export const useApp = create<AppState>((set, get) => ({
       await db.pushSnapshot({ ts: Date.now(), file, source: before, label: `edit ${entry}` });
       await db.addLog({ ts: Date.now(), file, entry, action: 'modify', detail: 'structured edit' });
       await get().refreshLogs();
-      await persistDraft(get);
+      try { await persistDraft(get); } catch {}
       return true;
     } catch (e: any) {
       set({ error: `Save failed: ${e?.message ?? e}` });
@@ -539,6 +540,7 @@ export const useApp = create<AppState>((set, get) => ({
     });
     await db.addLog({ ts: Date.now(), file, entry: '-', action: 'revert', detail: 'reverted last change' });
     await get().refreshLogs();
+    try { await persistDraft(get); } catch {}
   },
 
   setOptimizedImage: (name, blob) => {
@@ -563,9 +565,13 @@ export const useApp = create<AppState>((set, get) => ({
     }
     if (incoming.length === 0) return 0;
     const names = new Set(incoming.map((i) => i.name));
-    const merged = [...get().images.filter((i) => !names.has(i.name)), ...incoming].sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
+    const existing = get().images.filter((i) => {
+      if (!names.has(i.name)) return true;
+      URL.revokeObjectURL(i.url);
+      if (i.optimizedUrl) URL.revokeObjectURL(i.optimizedUrl);
+      return false;
+    });
+    const merged = [...existing, ...incoming].sort((a, b) => a.name.localeCompare(b.name));
     set({ images: merged });
     return incoming.length;
   },
@@ -603,6 +609,7 @@ export const useApp = create<AppState>((set, get) => ({
     set({ files: { ...get().files, [file]: { ...fs, original: fs.current, dirty: false } } });
     await db.addLog({ ts: Date.now(), file, entry: '-', action: 'export', detail: 'wrote to disk' });
     await get().refreshLogs();
+    try { await persistDraft(get); } catch {}
   },
 
   refreshLogs: async () => set({ logs: await db.getLogs() }),
