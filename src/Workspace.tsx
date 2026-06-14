@@ -95,8 +95,10 @@ function Sidebar({ view, setView }: { view: View; setView: (v: View) => void }) 
   const handle = useApp((s) => s.handle);
   const demo = useApp((s) => s.demo);
   const close = useApp((s) => s.closeFolder);
+  const images = useApp((s) => s.images);
 
   const dirtyCount = order.filter((f) => files[f]?.dirty).length;
+  const imagesDirty = images.some((i) => !!(i.optimized || i.removed || i.added));
 
   const NavItem = ({ id, label, icon: Icon, dirty }: { id: View; label: string; icon: any; dirty?: boolean }) => (
     <button
@@ -136,7 +138,7 @@ function Sidebar({ view, setView }: { view: View; setView: (v: View) => void }) 
         <div className="px-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           Assets
         </div>
-        <NavItem id="images" label="Images" icon={ImageIcon} />
+        <NavItem id="images" label="Images" icon={ImageIcon} dirty={imagesDirty} />
         <NavItem id="logs" label="Activity log" icon={ClipboardList} />
       </nav>
 

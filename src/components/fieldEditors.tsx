@@ -151,6 +151,62 @@ export function DisableEditor({ value, onChange }: { value: string; onChange: (v
   );
 }
 
+/* ---------- groups: job = min grade editor ---------- */
+
+const JOB_PRESETS = ['police', 'ambulance', 'mechanic', 'lsfd', 'judiciary', 'cardealer'];
+
+export function GroupsEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const parsed = parseKV(value);
+  if (parsed === null) return <RawTable value={value} onChange={onChange} />;
+  const rows = parsed.map((r) => ({ job: r.key, grade: r.raw }));
+
+  const serialize = (rs: { job: string; grade: string }[]) => {
+    const clean = rs.filter((r) => r.job.trim());
+    if (clean.length === 0) return '';
+    return `{ ${clean.map((r) => `${r.job} = ${r.grade === '' ? 0 : r.grade}`).join(', ')} }`;
+  };
+  const update = (rs: { job: string; grade: string }[]) => onChange(serialize(rs));
+
+  return (
+    <div className="space-y-2">
+      {rows.map((r, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <Input
+            className="h-8 flex-1 text-xs"
+            placeholder="job name"
+            value={r.job}
+            onChange={(e) => update(rows.map((x, j) => (j === i ? { ...x, job: e.target.value } : x)))}
+          />
+          <Input
+            type="number"
+            className="h-8 w-24 text-xs"
+            placeholder="min grade"
+            value={r.grade}
+            onChange={(e) => update(rows.map((x, j) => (j === i ? { ...x, grade: e.target.value } : x)))}
+          />
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => update(rows.filter((_, j) => j !== i))}>
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Button variant="outline" size="sm" className="h-7" onClick={() => update([...rows, { job: '', grade: '0' }])}>
+          <Plus className="h-3 w-3" /> Add job
+        </Button>
+        {JOB_PRESETS.filter((p) => !rows.some((r) => r.job === p)).map((p) => (
+          <button
+            key={p}
+            onClick={() => update([...rows, { job: p, grade: '0' }])}
+            className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground hover:bg-accent"
+          >
+            + {p}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- fallback raw table input ---------- */
 
 export function RawTable({ value, onChange }: { value: string; onChange: (v: string) => void }) {

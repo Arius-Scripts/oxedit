@@ -8,7 +8,7 @@ import { Switch } from './ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { DiffView } from './DiffView';
 import { InfoHint } from './InfoHint';
-import { StatusEditor, AnimEditor, DisableEditor, RawTable } from './fieldEditors';
+import { StatusEditor, AnimEditor, DisableEditor, GroupsEditor, RawTable } from './fieldEditors';
 import { useApp } from '@/stores/appStore';
 import { applyFormEdits, type FormField, type FieldEdit, type DisplayValue } from '@/engine/editModel';
 import { FIELD_DOCS, FIELD_PLACEHOLDERS, GROUP_TITLES, SCHEMAS, resolveImage } from '@/engine/schemaRegistry';
@@ -16,7 +16,7 @@ import type { DataFileName } from '@/services/fileSystem';
 import { cn } from '@/lib/utils';
 
 const TABLE_TYPES = new Set(['raw', 'call', 'table', 'function', 'member']);
-const SPECIAL = new Set(['status', 'anim', 'disable', 'prop']);
+const SPECIAL = new Set(['status', 'anim', 'disable', 'prop', 'groups']);
 const leafName = (f: FormField) => f.key.split('.').pop()!;
 const isSpecial = (f: FormField) => SPECIAL.has(leafName(f));
 const prettify = (k: string) => (k ? k.charAt(0).toUpperCase() + k.slice(1) : 'General');
@@ -265,6 +265,7 @@ function SpecialEditor({ field, value, onChange }: { field: FormField; value: st
   if (leaf === 'status') return <StatusEditor value={value} onChange={onChange} />;
   if (leaf === 'anim') return <AnimEditor value={value} onChange={onChange} />;
   if (leaf === 'disable') return <DisableEditor value={value} onChange={onChange} />;
+  if (leaf === 'groups') return <GroupsEditor value={value} onChange={onChange} />;
   return <RawTable value={value} onChange={onChange} />;
 }
 

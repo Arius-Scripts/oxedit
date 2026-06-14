@@ -33,19 +33,28 @@ interface OxDB extends DBSchema {
     value: Snapshot;
     indexes: { 'by-file': string };
   };
+  draftImages: {
+    key: string;
+    value: Blob;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<OxDB>> | null = null;
 
 function db() {
   if (!dbPromise) {
-    dbPromise = openDB<OxDB>('ox-item-manager', 1, {
-      upgrade(d) {
-        d.createObjectStore('handles');
-        const logs = d.createObjectStore('logs', { keyPath: 'id', autoIncrement: true });
-        logs.createIndex('by-ts', 'ts');
-        const snaps = d.createObjectStore('snapshots', { keyPath: 'id', autoIncrement: true });
-        snaps.createIndex('by-file', 'file');
+    dbPromise = openDB<OxDB>('ox-item-manager', 2, {
+      upgrade(d, oldVersion) {
+        if (oldVersion < 1) {
+          d.createObjectStore('handles');
+          const logs = d.createObjectStore('logs', { keyPath: 'id', autoIncrement: true });
+          logs.createIndex('by-ts', 'ts');
+          const snaps = d.createObjectStore('snapshots', { keyPath: 'id', autoIncrement: true });
+          snaps.createIndex('by-file', 'file');
+        }
+        if (oldVersion < 2) {
+          d.createObjectStore('draftImages');
+        }
       },
     });
   }
@@ -78,6 +87,22 @@ export async function loadDraft(): Promise<Draft | undefined> {
 }
 export async function clearDraft(): Promise<void> {
   await (await db()).delete('handles', 'draft');
+  await clearDraftImages();
+}
+
+export async function saveDraftImage(name: string, blob: Blob): Promise<void> {
+  await (await db()).put('draftImages', blob, name);
+}
+
+export async function loadDraftImages(): Promise<{ name: string; blob: Blob }[]> {
+  const d = await db();
+  const keys = await d.getAllKeys('draftImages');
+  const values = await d.getAll('draftImages');
+  return keys.map((k, i) => ({ name: String(k), blob: values[i] }));
+}
+
+export async function clearDraftImages(): Promise<void> {
+  await (await db()).clear('draftImages');
 }
 
 // --- Activity log ---

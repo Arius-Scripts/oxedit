@@ -25,7 +25,12 @@ import { cn } from '@/lib/utils';
 function ImageThumb({ name, className }: { name?: string; className?: string }) {
   const img = useApp((s) => (name ? s.images.find((i) => i.name === name) : undefined));
   const url = img?.optimizedUrl ?? img?.url;
-  if (!url) return <div className={cn('icon-checker rounded border border-border/50', className)} title={name} />;
+  if (!name) return <div className={cn('icon-checker rounded border border-border/50', className)} />;
+  if (!url) return (
+    <div className={cn('grid place-items-center rounded border border-amber-500/30 bg-amber-500/10', className)} title={`Missing: ${name}`}>
+      <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+    </div>
+  );
   return (
     <img src={url} alt={name} title={name} loading="lazy" className={cn('icon-checker rounded border border-border/50 object-contain', className)} />
   );
@@ -202,6 +207,7 @@ export function DataFilePage({ file }: { file: DataFileName }) {
                   const label = String(readField(model!, k, schema.labelKey) ?? '');
                   const img = resolveImage(file, model!, k);
                   const display = schema.type === 'multi-section' ? k.split('.').slice(1).join('.') : k;
+                  const subtitle = schema.subtitleKey ? String(readField(model!, k, schema.subtitleKey) ?? display) : display;
                   const checked = sel.has(k);
                   return (
                     <div
@@ -230,7 +236,7 @@ export function DataFilePage({ file }: { file: DataFileName }) {
                               <Badge variant="destructive" className="shrink-0 px-1 py-0 text-[9px]">dup</Badge>
                             )}
                           </div>
-                          {label && <span className="truncate font-mono text-[10px] text-muted-foreground">{display}</span>}
+                          {label && <span className="truncate font-mono text-[10px] text-muted-foreground">{subtitle}</span>}
                         </div>
                       </button>
                       {file === 'shops' && (

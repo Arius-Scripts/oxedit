@@ -122,6 +122,12 @@ async function persistDraft(get: () => AppState) {
       await db.clearDraft();
     } else {
       await db.saveDraft({ folderName: '__upload__', ts: Date.now(), mode: 'upload', files: currents, originals });
+      // Also persist image blobs so they survive tab close
+      await db.clearDraftImages();
+      for (const img of get().images) {
+        const blob = img.optimized ?? img.blob;
+        if (blob) await db.saveDraftImage(img.name, blob);
+      }
     }
   }
 }
@@ -237,8 +243,15 @@ export const useApp = create<AppState>((set, get) => ({
           order.push(name);
         } catch {}
       }
+      // Load persisted image blobs so images show up after restore
+      const draftImgs = await db.loadDraftImages();
+      const imageStates: ImageState[] = draftImgs.map(({ name, blob }) => ({
+        name, blob, url: URL.createObjectURL(blob), size: blob.size,
+      }));
       await db.clearDraft();
-      set({ handle: null, demo: false, files: fileMap, order, images: [], activeFile: order[0] ?? null, status: 'ready', _restoredDraftCount: order.filter((f) => fileMap[f]?.dirty).length });
+      set({ handle: null, demo: false, files: fileMap, order, images: imageStates, activeFile: order[0] ?? null, status: 'ready', _restoredDraftCount: order.filter((f) => fileMap[f]?.dirty).length });
+      // Re-persist so restored dirty state survives another tab close without edits
+      try { await persistDraft(get); } catch {}
     } catch (e: any) {
       set({ status: 'error', error: e?.message ?? String(e) });
     }

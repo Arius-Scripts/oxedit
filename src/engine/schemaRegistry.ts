@@ -16,6 +16,8 @@ export interface NormalizedSchema {
   templates?: Record<string, string>;
   /** field key used as the entry title in lists */
   labelKey: string;
+  /** field key used as the entry subtitle in lists (falls back to the entry key) */
+  subtitleKey?: string;
   /** optional path to an image filename field for preview (e.g. "client.image") */
   imageKey?: string;
   /** whether entries have an icon resolved from web/images (items, weapons) */
@@ -77,6 +79,7 @@ export const SCHEMAS: Record<DataFileName, NormalizedSchema> = {
     nested: stashesSchema.nestedFields,
     template: stashesSchema.template,
     labelKey: 'label',
+    subtitleKey: 'name',
     formSupported: true,
     editor: 'fields',
   },
