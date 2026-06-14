@@ -60,8 +60,10 @@ interface AppState {
 
   undo: Partial<Record<DataFileName, string[]>>;
   _restoredDraftCount: number;
+  uploadDraft: db.Draft | null;
 
   init: () => Promise<void>;
+  restoreFromDraft: () => Promise<void>;
   chooseFolder: () => Promise<void>;
   chooseUpload: () => Promise<void>;
   chooseDrop: (roots: DroppedRoots) => Promise<void>;
@@ -93,15 +95,34 @@ interface AppState {
 
 async function persistDraft(get: () => AppState) {
   const { files, handle, demo } = get();
-  if (demo || !handle) return;
-  const dirty: Record<string, string> = {};
-  for (const [name, fs] of Object.entries(files)) {
-    if (fs?.dirty) dirty[name] = fs.current;
-  }
-  if (Object.keys(dirty).length === 0) {
-    await db.clearDraft();
+  if (demo) return;
+  if (handle) {
+    // Handle mode: save only dirty file contents
+    const dirty: Record<string, string> = {};
+    for (const [name, fs] of Object.entries(files)) {
+      if (fs?.dirty) dirty[name] = fs.current;
+    }
+    if (Object.keys(dirty).length === 0) {
+      await db.clearDraft();
+    } else {
+      await db.saveDraft({ folderName: handle.name, ts: Date.now(), mode: 'handle', files: dirty });
+    }
   } else {
-    await db.saveDraft({ folderName: handle.name, ts: Date.now(), files: dirty });
+    // Upload mode: save all file contents + originals so we can restore without disk
+    const currents: Record<string, string> = {};
+    const originals: Record<string, string> = {};
+    let anyDirty = false;
+    for (const [name, fs] of Object.entries(files)) {
+      if (!fs) continue;
+      currents[name] = fs.current;
+      originals[name] = fs.original;
+      if (fs.dirty) anyDirty = true;
+    }
+    if (!anyDirty) {
+      await db.clearDraft();
+    } else {
+      await db.saveDraft({ folderName: '__upload__', ts: Date.now(), mode: 'upload', files: currents, originals });
+    }
   }
 }
 
@@ -182,6 +203,7 @@ export const useApp = create<AppState>((set, get) => ({
   logs: [],
   undo: {},
   _restoredDraftCount: 0,
+  uploadDraft: null,
 
   init: async () => {
     if (!isSupported()) {
@@ -191,12 +213,41 @@ export const useApp = create<AppState>((set, get) => ({
     const handle = await restoreFolder();
     if (handle) {
       const draft = await db.loadDraft();
-      await applyLoaded(await readFolder(handle), handle, set, get, draft);
+      await applyLoaded(await readFolder(handle), handle, set, get, draft?.mode === 'handle' ? draft : undefined);
+    } else {
+      const draft = await db.loadDraft();
+      if (draft?.mode === 'upload' && Object.keys(draft.files).length > 0) {
+        set({ uploadDraft: draft });
+      }
+    }
+  },
+
+  restoreFromDraft: async () => {
+    const draft = get().uploadDraft;
+    if (!draft || draft.mode !== 'upload') return;
+    set({ status: 'loading', error: null, uploadDraft: null });
+    try {
+      const fileMap: Partial<Record<DataFileName, FileState>> = {};
+      const order: DataFileName[] = [];
+      for (const [fname, current] of Object.entries(draft.files)) {
+        const name = fname as DataFileName;
+        const original = draft.originals?.[fname] ?? current;
+        try {
+          const { model, hash } = modelFromSource(current);
+          fileMap[name] = { name, original, current, model, hash, dirty: current !== original };
+          order.push(name);
+        } catch {}
+      }
+      set({ handle: null, demo: false, files: fileMap, order, images: [], activeFile: order[0] ?? null, status: 'ready', _restoredDraftCount: order.filter((f) => fileMap[f]?.dirty).length });
+    } catch (e: any) {
+      set({ status: 'error', error: e?.message ?? String(e) });
     }
   },
 
   chooseFolder: async () => {
     try {
+      await db.clearDraft();
+      set({ uploadDraft: null });
       const handle = await pickFolder();
       await applyLoaded(await readFolder(handle), handle, set, get);
     } catch (e: any) {
@@ -207,8 +258,10 @@ export const useApp = create<AppState>((set, get) => ({
 
   chooseUpload: async () => {
     try {
+      await db.clearDraft();
+      set({ uploadDraft: null });
       const picked = await promptFolderUpload();
-      if (picked.length === 0) return; // user cancelled
+      if (picked.length === 0) return;
       await applyLoaded(await readUpload(picked), null, set, get);
     } catch (e: any) {
       set({ status: 'error', error: e?.message ?? String(e) });
@@ -217,7 +270,8 @@ export const useApp = create<AppState>((set, get) => ({
 
   chooseDrop: async (roots) => {
     try {
-      set({ status: 'loading', error: null });
+      await db.clearDraft();
+      set({ status: 'loading', error: null, uploadDraft: null });
       const { handle, files, images } = await readDrop(roots);
       if (files.length === 0) {
         set({ status: 'idle' });
@@ -235,7 +289,7 @@ export const useApp = create<AppState>((set, get) => ({
 
   loadDemo: async () => {
     try {
-      set({ status: 'loading', error: null });
+      set({ status: 'loading', error: null, uploadDraft: null });
       const images = await buildDemoImages();
       await applyLoaded({ files: DEMO_FILES, images }, null, set, get);
       set({ demo: true });
@@ -251,7 +305,7 @@ export const useApp = create<AppState>((set, get) => ({
       URL.revokeObjectURL(i.url);
       if (i.optimizedUrl) URL.revokeObjectURL(i.optimizedUrl);
     });
-    set({ handle: null, demo: false, files: {}, order: [], images: [], activeFile: null, status: 'idle', undo: {}, _restoredDraftCount: 0 });
+    set({ handle: null, demo: false, files: {}, order: [], images: [], activeFile: null, status: 'idle', undo: {}, _restoredDraftCount: 0, uploadDraft: null });
   },
 
   setActive: (name) => set({ activeFile: name }),

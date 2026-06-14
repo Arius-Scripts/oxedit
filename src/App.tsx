@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Boxes, FolderInput, FolderOpen, Loader2, Sparkles, Upload } from 'lucide-react';
+import { Boxes, FolderInput, FolderOpen, History, Loader2, Sparkles, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/stores/appStore';
 import { captureDrop } from '@/services/fileSystem';
@@ -59,6 +59,8 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
   const upload = useApp((s) => s.chooseUpload);
   const drop = useApp((s) => s.chooseDrop);
   const tryDemo = useApp((s) => s.loadDemo);
+  const uploadDraft = useApp((s) => s.uploadDraft);
+  const restoreFromDraft = useApp((s) => s.restoreFromDraft);
   const [dragOver, setDragOver] = useState(false);
 
   const onDrop = (e: React.DragEvent) => {
@@ -81,6 +83,20 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
           Edit your ox_inventory items, weapons, shops and more — safely. Only the lines you change get
           touched; everything else stays byte-for-byte identical.
         </p>
+
+        {uploadDraft && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-left">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-amber-400">Unsaved session found</p>
+              <p className="text-xs text-muted-foreground">
+                {new Date(uploadDraft.ts).toLocaleString()} &mdash; {Object.keys(uploadDraft.files).length} file{Object.keys(uploadDraft.files).length > 1 ? 's' : ''}
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="shrink-0 border-amber-500/40 text-amber-400 hover:bg-amber-500/10" onClick={restoreFromDraft} disabled={loading}>
+              <History className="h-3.5 w-3.5" /> Restore
+            </Button>
+          </div>
+        )}
 
         {/* Primary action: drag the folder in. Works in every browser and only reads
             data/ and web/images/, so the rest of the resource is never loaded. */}

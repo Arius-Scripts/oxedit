@@ -55,7 +55,9 @@ function db() {
 export interface Draft {
   folderName: string;
   ts: number;
+  mode: 'handle' | 'upload';
   files: Record<string, string>;
+  originals?: Record<string, string>;
 }
 
 // --- Folder handle persistence ---
