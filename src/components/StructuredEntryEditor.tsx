@@ -68,7 +68,7 @@ export function StructuredEntryEditor({
     if (await replaceTable(file, entryKey, newTable)) {
       toast.success('Saved');
       setShowDiff(false);
-    } else toast.error('Save failed — check the values');
+    } else toast.error('Save failed: check the values');
   };
   const doRemove = async () => {
     if (await removeEntry(file, entryKey)) {
@@ -111,9 +111,9 @@ export function StructuredEntryEditor({
       <Dialog open={showDiff} onOpenChange={setShowDiff}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Review changes — {file}.lua</DialogTitle>
+            <DialogTitle>Review changes: {file}.lua</DialogTitle>
             <DialogDescription>
-              Only this entry is rewritten — every other entry in the file stays byte-for-byte identical.
+              Only this entry is rewritten; every other entry in the file stays byte-for-byte identical.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[55vh] overflow-auto">

@@ -87,7 +87,7 @@ export function ImagePickerModal({
       toast.success(`Set image: ${img.name}`);
       onClose();
     } catch {
-      toast.error('Failed to download image — check your connection');
+      toast.error('Failed to download image: check your connection');
     } finally {
       setBusy(false);
     }
@@ -140,7 +140,7 @@ export function ImagePickerModal({
             filteredSession.length === 0 ? (
               <Empty>
                 {sessionImages.filter((i) => !i.removed).length === 0
-                  ? 'No images in this session — try "Browse library" to fetch from the FiveM items gallery.'
+                  ? 'No images in this session. Try "Browse library" to fetch from the FiveM items gallery.'
                   : 'No images match your search.'}
               </Empty>
             ) : (
@@ -167,7 +167,7 @@ export function ImagePickerModal({
           ) : libError ? (
             <Empty>
               <WifiOff className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
-              Could not load the image library — check your connection or try again later.
+              Could not load the image library. Check your connection or try again later.
             </Empty>
           ) : libraryList === null ? (
             <div className="flex h-32 items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -199,7 +199,7 @@ export function ImagePickerModal({
                   onClick={() => setVisibleCount((n) => n + 60)}
                   className="mt-4 w-full rounded-md border border-border py-2 text-xs text-muted-foreground hover:bg-accent"
                 >
-                  Load more — {filteredLibrary.length - visibleCount} remaining
+                  Load more ({filteredLibrary.length - visibleCount} remaining)
                 </button>
               )}
             </>
@@ -216,8 +216,8 @@ export function ImagePickerModal({
               className="underline underline-offset-2 hover:text-foreground"
             >
               bitc0de/fivem-items-gallery
-            </a>{' '}
-            — all credit to the original author.
+            </a>
+            . All credit to the original author.
           </div>
         )}
       </DialogContent>

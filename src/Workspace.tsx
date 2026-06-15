@@ -60,7 +60,7 @@ export default function Workspace() {
   const view = locationToView(location);
   const setView = (v: View) => setLocation('/' + v);
 
-  // Sync URL on first mount — if user opened a folder from landing (/), push /items.
+  // Sync URL on first mount: if user opened a folder from landing (/), push /items.
   useEffect(() => {
     if (location === '/' || location === '') setLocation('/items', { replace: true });
   }, []);

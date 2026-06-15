@@ -93,7 +93,7 @@ export function EntryForm({
       toast.success(`Saved ${edits.length} change${edits.length === 1 ? '' : 's'}`);
       setShowDiff(false);
     } else {
-      toast.error('Save failed — check the values are valid');
+      toast.error('Save failed: check the values are valid');
     }
   };
 
@@ -207,7 +207,7 @@ export function EntryForm({
       <Dialog open={showDiff} onOpenChange={setShowDiff}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Review changes — {file}.lua</DialogTitle>
+            <DialogTitle>Review changes: {file}.lua</DialogTitle>
             <DialogDescription>
               Only the highlighted lines change. Everything else stays byte-for-byte identical.
             </DialogDescription>

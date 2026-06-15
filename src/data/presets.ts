@@ -14,7 +14,7 @@ export interface Preset {
 
 /**
  * Curated default entries users can add with one click. These are sensible
- * starting points based on common ox_inventory setups — edit after adding.
+ * starting points based on common ox_inventory setups; edit after adding.
  */
 export const PRESETS: Partial<Record<DataFileName, Preset[]>> = {
   items: [

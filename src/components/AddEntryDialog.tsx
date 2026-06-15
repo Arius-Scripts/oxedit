@@ -36,7 +36,7 @@ function needsKey(schema: NormalizedSchema): boolean {
   return schema.type === 'keyed-map' || schema.type === 'multi-section';
 }
 
-/** Ensure a preset's key doesn't collide with an existing entry; rename + rewrite the snippet. */
+/** Make sure a preset's key doesn't collide with an existing entry; rename + rewrite the snippet. */
 function withUniqueKey(lua: string, key: string, existing: string[]): { lua: string; key: string } {
   const existingSet = new Set(existing);
   let k = key;

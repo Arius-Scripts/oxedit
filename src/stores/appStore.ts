@@ -213,7 +213,7 @@ export const useApp = create<AppState>((set, get) => ({
 
   init: async () => {
     if (!isSupported()) set({ supported: false });
-    // Don't return early — non-supporting browsers still need upload draft check.
+    // Don't return early: non-supporting browsers still need upload draft check.
     const handle = isSupported() ? await restoreFolder() : null;
     if (handle) {
       const draft = await db.loadDraft();

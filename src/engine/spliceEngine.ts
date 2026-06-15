@@ -115,7 +115,7 @@ export function deleteEntry(source: string, model: FileModel, entryKey: string):
     end += trailingMatch[0].length;
   }
 
-  // Consume the entry's leading indentation only (NOT the preceding newline) —
+  // Consume the entry's leading indentation only (NOT the preceding newline):
   // pulling back across the newline would merge the next entry onto a preceding
   // comment line and break the file.
   const beforeEntry = source.substring(0, start);
@@ -126,7 +126,7 @@ export function deleteEntry(source: string, model: FileModel, entryKey: string):
 
   const left = source.substring(0, start);
   let right = source.substring(end);
-  // Collapse a blank line created exactly at the deletion seam (local only —
+  // Collapse a blank line created exactly at the deletion seam (local only;
   // never touches blank lines elsewhere in the file).
   if (left.endsWith('\n')) {
     right = right.replace(/^[ \t]*\r?\n/, '');

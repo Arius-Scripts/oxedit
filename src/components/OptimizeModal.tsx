@@ -71,8 +71,8 @@ export function OptimizeModal({ image, onClose }: { image: ImageState | null; on
             <Minimize2 className="text-primary" /> Optimize image
           </DialogTitle>
           <DialogDescription>
-            Resizes and re-encodes the PNG, keeping transparency. ox_inventory icons are usually 100×100 —
-            shrink them to cut file size. The original is never modified until you export.
+            Resizes and re-encodes the PNG, keeping transparency. ox_inventory icons are usually 100×100,
+            so shrink them to cut file size. The original is never modified until you export.
           </DialogDescription>
         </DialogHeader>
 
@@ -120,7 +120,7 @@ export function OptimizeModal({ image, onClose }: { image: ImageState | null; on
               ) : result && result.saved > 0 ? (
                 <span>
                   Saves <span className="font-semibold text-emerald-400">{formatBytes(result.saved)}</span> (
-                  {pct}% smaller) — {formatBytes(result.originalSize)} → {formatBytes(result.optimizedSize)}
+                  {pct}% smaller): {formatBytes(result.originalSize)} → {formatBytes(result.optimizedSize)}
                 </span>
               ) : changed ? (
                 <span className="text-muted-foreground">
@@ -128,7 +128,7 @@ export function OptimizeModal({ image, onClose }: { image: ImageState | null; on
                 </span>
               ) : (
                 <span className="text-muted-foreground">
-                  This is the original size — pick a smaller option to shrink it.
+                  This is the original size; pick a smaller option to shrink it.
                 </span>
               )}
             </div>

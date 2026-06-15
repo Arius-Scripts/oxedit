@@ -62,7 +62,7 @@ export function ImagesPage() {
       setAnalysis(Object.fromEntries(res.map((r) => [r.name, r])));
       const large = res.filter((r) => r.isLarge).length;
       const dupes = res.filter((r) => r.duplicateOf).length;
-      toast.success(`Analyzed ${res.length} — ${large} large, ${dupes} duplicates`);
+      toast.success(`Analyzed ${res.length}: ${large} large, ${dupes} duplicates`);
     } finally {
       setAnalyzing(false);
     }
@@ -89,7 +89,7 @@ export function ImagesPage() {
     let saved = 0;
     try {
       for (const t of targets) saved += await optimizeSilently(t);
-      toast.success(`Optimized ${targets.length} — saved ${formatBytes(saved)}`);
+      toast.success(`Optimized ${targets.length}, saved ${formatBytes(saved)}`);
     } finally {
       setBulkRunning(false);
     }

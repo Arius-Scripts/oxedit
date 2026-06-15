@@ -208,7 +208,7 @@ export const SCALAR_ARRAY_KINDS: Record<string, ValKind> = {
 };
 
 /**
- * Short, plain-English explanations for fields — surfaced as tooltips in the UI.
+ * Short, plain-English explanations for fields, surfaced as tooltips in the UI.
  * Sourced from the official ox_inventory documentation.
  */
 export const FIELD_DOCS: Record<string, string> = {

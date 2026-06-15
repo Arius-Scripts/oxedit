@@ -18,13 +18,13 @@ export function RawFileEditor({ file }: { file: DataFileName }) {
   const save = async () => {
     const ok = await setRaw(file, draft);
     if (ok) toast.success('Applied');
-    else toast.error('Lua parse error — not applied');
+    else toast.error('Lua parse error, not applied');
   };
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-border px-4 py-2">
-        <span className="text-xs text-muted-foreground">Raw editor — {file}.lua</span>
+        <span className="text-xs text-muted-foreground">Raw editor: {file}.lua</span>
         <Button size="sm" disabled={!dirty} onClick={save}>
           <Save /> Apply
         </Button>

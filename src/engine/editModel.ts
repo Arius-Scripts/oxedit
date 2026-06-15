@@ -129,7 +129,7 @@ export function entryKeys(model: FileModel): string[] {
   return model.entries.map((e) => e.key);
 }
 
-/** Keys that appear more than once (Lua keeps only the last — earlier ones are silently lost). */
+/** Keys that appear more than once (Lua keeps only the last; earlier ones are silently lost). */
 export function duplicateKeys(model: FileModel): Set<string> {
   const counts = new Map<string, number>();
   for (const e of model.entries) counts.set(e.key, (counts.get(e.key) ?? 0) + 1);
@@ -172,7 +172,7 @@ export function applyEdits(
   return newSource;
 }
 
-/** Lower-level splice (no re-parse) — used when we have a prebuilt model. */
+/** Lower-level splice (no re-parse), used when we have a prebuilt model. */
 export function spliceEdits(model: FileModel, source: string, changes: Map<string, DisplayValue>): string {
   const ops = computeSpliceOps(model, changes as Map<string, any>);
   return applySplices(source, ops);
@@ -239,7 +239,7 @@ export function applyFormEdits(
       arr.push(item);
       byParent.set(parentField, arr);
     } else if (!parentRel.includes('.')) {
-      // Parent table is missing — create it inline inside the entry table.
+      // Parent table is missing, so create it inline inside the entry table.
       entryTableItems.push(`${parentRel} = { ${item} }`);
     }
   }

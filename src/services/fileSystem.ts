@@ -110,7 +110,7 @@ export async function readFolder(handle: FsDirHandle): Promise<LoadedFolder> {
       const file = await fh.getFile();
       files.push({ name, source: await file.text() });
     } catch {
-      /* file optional — skip if missing */
+      /* file optional, skip if missing */
     }
   }
   if (files.length === 0) {
@@ -255,7 +255,7 @@ export interface DroppedRoots {
 }
 
 /**
- * Capture drop targets synchronously inside the `drop` handler — the DataTransfer
+ * Capture drop targets synchronously inside the `drop` handler. The DataTransfer
  * (and its items) become invalid once the event handler returns, so this MUST run
  * before any await. `getAsFileSystemHandle()` returns a promise we keep; `webkitGetAsEntry()`
  * returns the entry immediately.

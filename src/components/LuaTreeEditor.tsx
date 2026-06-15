@@ -379,7 +379,7 @@ function ValueEditor({ value, onChange, pathKey }: { value: LuaVal; onChange: (v
     case 'str':
       return <Input placeholder={ph} value={value.v} onChange={(e) => onChange({ t: 'str', v: e.target.value })} />;
     case 'vec3':
-      // Edit coordinates as a single Lua expression (vec3/vector3/vec4…) — easier
+      // Edit coordinates as a single Lua expression (vec3/vector3/vec4…), easier
       // to paste from the game than separate X/Y/Z boxes.
       return (
         <Input

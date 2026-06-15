@@ -29,7 +29,7 @@ function ImageThumb({ name, className, onClick }: { name?: string; className?: s
   if (!name) return <div className={cn('icon-checker rounded border border-border/50', className)} />;
   if (!url) {
     const inner = (
-      <div className={cn('grid place-items-center rounded border border-border/40 bg-muted/20', className)} title={onClick ? `No image — click to assign` : `No image: ${name}`}>
+      <div className={cn('grid place-items-center rounded border border-border/40 bg-muted/20', className)} title={onClick ? `No image, click to assign` : `No image: ${name}`}>
         <ImageOff className="h-3.5 w-3.5 text-muted-foreground/40" />
       </div>
     );
@@ -39,7 +39,7 @@ function ImageThumb({ name, className, onClick }: { name?: string; className?: s
   }
   if (onClick) {
     return (
-      <button type="button" onClick={(e) => { e.stopPropagation(); onClick(); }} className="group relative shrink-0 cursor-pointer" title={`${name} — click to change`}>
+      <button type="button" onClick={(e) => { e.stopPropagation(); onClick(); }} className="group relative shrink-0 cursor-pointer" title={`${name} (click to change)`}>
         <img src={url} alt={name} loading="lazy" className={cn('icon-checker rounded border border-border/50 object-contain', className)} />
         <div className="absolute inset-0 flex items-center justify-center rounded bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
           <Pencil className="h-3 w-3 text-white" />
@@ -153,7 +153,7 @@ export function DataFilePage({ file }: { file: DataFileName }) {
           <Badge variant="secondary">{keys.length}</Badge>
           {fs.dirty && <Badge variant="warning">unsaved</Badge>}
           {dups.size > 0 && (
-            <Hint text={`Duplicate keys: ${[...dups].join(', ')}. Lua keeps only the last — remove the earlier ones.`}>
+            <Hint text={`Duplicate keys: ${[...dups].join(', ')}. Lua keeps only the last, so remove the earlier ones.`}>
               <Badge variant="destructive">
                 <AlertTriangle className="mr-1 h-3 w-3" /> {dups.size} duplicate
               </Badge>
@@ -312,7 +312,7 @@ export function DataFilePage({ file }: { file: DataFileName }) {
       <Dialog open={showFullDiff} onOpenChange={setShowFullDiff}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>All changes — {file}.lua (original → current)</DialogTitle>
+            <DialogTitle>All changes: {file}.lua (original → current)</DialogTitle>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-auto">
             <DiffView before={fs.original} after={fs.current} />

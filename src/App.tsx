@@ -67,7 +67,7 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
     e.preventDefault();
     setDragOver(false);
     if (loading || !e.dataTransfer?.items?.length) return;
-    // Capture synchronously — the DataTransfer dies once this handler returns.
+    // Capture synchronously: the DataTransfer dies once this handler returns.
     drop(captureDrop(Array.from(e.dataTransfer.items)));
   };
 
@@ -80,7 +80,7 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
         <h1 className="text-2xl font-semibold">oxEdit</h1>
         <p className="mt-1 text-sm font-medium text-primary">ox_inventory item, weapon &amp; shop editor</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Edit your ox_inventory items, weapons, shops and more — safely. Only the lines you change get
+          Safely edit your ox_inventory items, weapons, shops and more. Only the lines you change get
           touched; everything else stays byte-for-byte identical.
         </p>
 
@@ -89,7 +89,7 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
             <div className="min-w-0">
               <p className="text-sm font-medium text-amber-400">Unsaved session found</p>
               <p className="text-xs text-muted-foreground">
-                {new Date(uploadDraft.ts).toLocaleString()} &mdash; {Object.keys(uploadDraft.files).length} file{Object.keys(uploadDraft.files).length > 1 ? 's' : ''}
+                {new Date(uploadDraft.ts).toLocaleString()} &middot; {Object.keys(uploadDraft.files).length} file{Object.keys(uploadDraft.files).length > 1 ? 's' : ''}
               </p>
             </div>
             <Button size="sm" variant="outline" className="shrink-0 border-amber-500/40 text-amber-400 hover:bg-amber-500/10" onClick={restoreFromDraft} disabled={loading}>
@@ -121,7 +121,7 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
             {loading ? 'Loading…' : 'Drag your ox_inventory folder here'}
           </div>
           <div className="text-xs text-muted-foreground">
-            Lightest option — loads only items and icons, never the whole resource.
+            Lightest option: loads only items and icons, never the whole resource.
           </div>
         </div>
 
@@ -130,7 +130,7 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
           disabled={loading}
           className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary underline-offset-4 hover:underline disabled:opacity-50"
         >
-          <Sparkles className="h-3.5 w-3.5" /> Try it with sample data — no folder needed
+          <Sparkles className="h-3.5 w-3.5" /> Try it with sample data, no folder needed
         </button>
 
         <div className="mt-4 flex flex-col items-center gap-2">
@@ -162,7 +162,7 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
               </Button>
               <p className="max-w-sm text-[11px] text-muted-foreground">
                 Uploading the whole folder is slower here (Brave/Firefox/Safari list every file).
-                Dragging the folder above is faster. Changes export as a zip — for in-place saving use
+                Dragging the folder above is faster. Changes export as a zip; for in-place saving use
                 Chrome or Edge.
               </p>
             </>
@@ -170,7 +170,7 @@ function Landing({ loading, supported }: { loading: boolean; supported: boolean 
         </div>
 
         <p className="mt-4 text-xs text-muted-foreground">
-          Your files never leave your computer — everything runs in your browser.
+          Your files never leave your computer. Everything runs in your browser.
         </p>
 
 
